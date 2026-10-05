@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">pi.html</string>
+    <string name="brand_short">Pi</string>
+    <string name="brand_name">pi.html</string>
+    <string name="new_app_button">Nova aplicação</string>
+    <string name="saved_apps_header">Aplicações</string>
+    <string name="empty_history_message">Suas aplicações aparecerão aqui.</string>
+    <string name="theme_light_mode">Modo Claro</string>
+    <string name="theme_dark_mode">Modo Escuro</string>
+    <string name="url_input_placeholder">Endereço URL...</string>
+    <string name="open_menu_cd">Abrir menu</string>
+    <string name="close_menu_cd">Fechar menu</string>
+    <string name="select_html_cd">Selecionar arquivo HTML</string>
+    <string name="load_url_cd">Abrir endereço URL</string>
+    <string name="delete_app_cd">Excluir aplicação</string>
+    <string name="welcome_title">O que vamos abrir?</string>
+    <string name="toast_html_imported">Aplicação HTML salva</string>
+    <string name="toast_html_error">Não foi possível ler o arquivo HTML</string>
+    <string name="toast_app_removed">Aplicação removida</string>
+    <string name="default_html_app_title">Aplicação HTML</string>
+    <string name="toast_download_saved">Salvo em Downloads: %1$s</string>
+    <string name="toast_download_error">Erro ao salvar arquivo em Downloads</string>
+</resources>

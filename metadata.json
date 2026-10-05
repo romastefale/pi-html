@@ -1,0 +1,6 @@
+{
+  "name": "pi.html",
+  "description": "Minimalist fullscreen runner for local static HTML files and web app URLs with state persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
