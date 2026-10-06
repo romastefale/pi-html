@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,21 +25,28 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +57,17 @@ import com.example.ui.theme.AccentOrangeBorder
 import com.example.ui.theme.AccentOrangeEnd
 import com.example.ui.theme.AccentOrangeStart
 import com.example.ui.theme.InterFontFamily
+
+private val MenuLineShape = RoundedCornerShape(2.dp)
+private val PillBarShape = RoundedCornerShape(28.dp)
+private val CursorSolidBrush = SolidColor(AccentOrangeStart)
+private val OrangeGradientBrush = Brush.linearGradient(
+    colors = listOf(AccentOrangeStart, AccentOrangeEnd)
+)
+private val UrlKeyboardOptions = KeyboardOptions(
+    keyboardType = KeyboardType.Uri,
+    imeAction = ImeAction.Go
+)
 
 @Composable
 fun FloatingMenuButton(
@@ -80,14 +99,14 @@ fun FloatingMenuButton(
                 modifier = Modifier
                     .width(16.dp)
                     .height(2.dp)
-                    .clip(RoundedCornerShape(2.dp))
+                    .clip(MenuLineShape)
                     .background(lineColor)
             )
             Box(
                 modifier = Modifier
                     .width(11.dp)
                     .height(2.dp)
-                    .clip(RoundedCornerShape(2.dp))
+                    .clip(MenuLineShape)
                     .background(lineColor)
             )
         }
@@ -107,6 +126,21 @@ fun BottomComposerBar(
     val textMain = MaterialTheme.colorScheme.onBackground
     val textMuted = MaterialTheme.colorScheme.outlineVariant
 
+    val inputTextStyle = remember(textMain) {
+        TextStyle(
+            fontFamily = InterFontFamily,
+            color = textMain,
+            fontSize = 16.sp
+        )
+    }
+    val keyboardActions = remember(onSubmitUrl) {
+        KeyboardActions(
+            onGo = { onSubmitUrl() },
+            onDone = { onSubmitUrl() }
+        )
+    }
+    val arrowHeadPath = remember { Path() }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -122,12 +156,12 @@ fun BottomComposerBar(
                 .height(56.dp)
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(28.dp),
+                    shape = PillBarShape,
                     spotColor = Color(0x1F000000)
                 )
-                .clip(RoundedCornerShape(28.dp))
+                .clip(PillBarShape)
                 .background(pillSurface)
-                .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(28.dp))
+                .border(width = 1.dp, color = borderColor, shape = PillBarShape)
                 .padding(start = 10.dp, end = 8.dp, top = 6.dp, bottom = 6.dp)
                 .testTag("floating_pill_bar"),
             verticalAlignment = Alignment.CenterVertically
@@ -155,20 +189,10 @@ fun BottomComposerBar(
                 value = urlInput,
                 onValueChange = onUrlInputChange,
                 singleLine = true,
-                textStyle = TextStyle(
-                    fontFamily = InterFontFamily,
-                    color = textMain,
-                    fontSize = 16.sp
-                ),
-                cursorBrush = SolidColor(AccentOrangeStart),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Go
-                ),
-                keyboardActions = KeyboardActions(
-                    onGo = { onSubmitUrl() },
-                    onDone = { onSubmitUrl() }
-                ),
+                textStyle = inputTextStyle,
+                cursorBrush = CursorSolidBrush,
+                keyboardOptions = UrlKeyboardOptions,
+                keyboardActions = keyboardActions,
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 10.dp)
@@ -192,9 +216,7 @@ fun BottomComposerBar(
             )
 
             // Right Orange Upward Arrow Button to launch URL
-            val orangeGradient = Brush.linearGradient(
-                colors = listOf(AccentOrangeStart, AccentOrangeEnd)
-            )
+            val loadUrlCd = stringResource(R.string.load_url_cd)
             Box(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
@@ -205,18 +227,42 @@ fun BottomComposerBar(
                         spotColor = AccentOrangeStart
                     )
                     .clip(CircleShape)
-                    .background(brush = orangeGradient)
+                    .background(brush = OrangeGradientBrush)
                     .border(width = 1.dp, color = AccentOrangeBorder, shape = CircleShape)
                     .clickable(onClick = onSubmitUrl)
+                    .semantics { contentDescription = loadUrlCd }
                     .testTag("send_url_button"),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowUpward,
-                    contentDescription = stringResource(R.string.load_url_cd),
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
-                )
+                Canvas(modifier = Modifier.size(18.dp)) {
+                    val strokePx = 2.5.dp.toPx()
+                    val cx = size.width / 2f
+                    val topY = size.height * 0.21f
+                    val bottomY = size.height * 0.79f
+                    val wingX = size.width * 0.29f
+                    val wingY = size.height * 0.50f
+
+                    drawLine(
+                        color = Color.White,
+                        start = Offset(cx, bottomY),
+                        end = Offset(cx, topY),
+                        strokeWidth = strokePx,
+                        cap = StrokeCap.Round
+                    )
+                    arrowHeadPath.reset()
+                    arrowHeadPath.moveTo(cx - wingX, wingY)
+                    arrowHeadPath.lineTo(cx, topY)
+                    arrowHeadPath.lineTo(cx + wingX, wingY)
+                    drawPath(
+                        path = arrowHeadPath,
+                        color = Color.White,
+                        style = Stroke(
+                            width = strokePx,
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
+                        )
+                    )
+                }
             }
         }
     }

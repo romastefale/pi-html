@@ -7,9 +7,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,8 +35,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,7 +45,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +63,18 @@ import com.example.data.local.SavedWebAppEntity
 import com.example.ui.theme.DarkSidebarBrandBg
 import com.example.ui.theme.LightMarkBg
 import com.example.ui.theme.ScrimOverlay
+
+private val BrandBadgeShape = RoundedCornerShape(6.dp)
+private val ActionCardShape = RoundedCornerShape(12.dp)
+private val HistoryItemShape = RoundedCornerShape(10.dp)
+private val DeleteBtnShape = RoundedCornerShape(8.dp)
+
+private val SunRayCos = FloatArray(8) { i ->
+    kotlin.math.cos(Math.toRadians((i * 45).toDouble())).toFloat()
+}
+private val SunRaySin = FloatArray(8) { i ->
+    kotlin.math.sin(Math.toRadians((i * 45).toDouble())).toFloat()
+}
 
 @Composable
 fun SidebarDrawer(
@@ -75,8 +93,8 @@ fun SidebarDrawer(
         // Backdrop Scrim Overlay
         AnimatedVisibility(
             visible = isOpen,
-            enter = fadeIn(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(220))
+            enter = fadeIn(animationSpec = tween(180)),
+            exit = fadeOut(animationSpec = tween(180))
         ) {
             Box(
                 modifier = Modifier
@@ -91,16 +109,16 @@ fun SidebarDrawer(
             )
         }
 
-        // Slide-out Sidebar Panel
+        // Slide-out Sidebar Panel with hardware layer caching during slide animation
         AnimatedVisibility(
             visible = isOpen,
             enter = slideInHorizontally(
                 initialOffsetX = { -it },
-                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { -it },
-                animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                animationSpec = tween(durationMillis = 190, easing = FastOutSlowInEasing)
             )
         ) {
             val sidebarBg = MaterialTheme.colorScheme.surfaceContainer
@@ -114,10 +132,24 @@ fun SidebarDrawer(
                 modifier = Modifier
                     .width(288.dp)
                     .fillMaxHeight()
+                    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                     .shadow(elevation = 16.dp)
                     .background(sidebarBg)
                     .border(width = 1.dp, color = borderColor)
                     .windowInsetsPadding(WindowInsets.systemBars)
+                    .pointerInput(Unit) {
+                        var totalDragX = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { totalDragX = 0f },
+                            onHorizontalDrag = { change, dragAmount ->
+                                totalDragX += dragAmount
+                                if (totalDragX < -32.dp.toPx()) {
+                                    change.consume()
+                                    onClose()
+                                }
+                            }
+                        )
+                    }
                     .padding(horizontal = 16.dp, vertical = 20.dp)
                     .testTag("sidebar_panel")
             ) {
@@ -136,7 +168,7 @@ fun SidebarDrawer(
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
-                                .clip(RoundedCornerShape(6.dp))
+                                .clip(BrandBadgeShape)
                                 .background(if (isDarkTheme) DarkSidebarBrandBg else LightMarkBg),
                             contentAlignment = Alignment.Center
                         ) {
@@ -178,7 +210,7 @@ fun SidebarDrawer(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(ActionCardShape)
                         .background(itemSurface)
                         .clickable(onClick = onNewAppClick)
                         .padding(horizontal = 14.dp, vertical = 12.dp)
@@ -232,13 +264,14 @@ fun SidebarDrawer(
                     ) {
                         items(
                             items = savedApps,
-                            key = { it.id }
+                            key = { it.id },
+                            contentType = { "saved_web_app_row" }
                         ) { app ->
                             val isActive = app.id == activeAppId
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .clip(HistoryItemShape)
                                     .background(if (isActive) itemSurface else Color.Transparent)
                                     .clickable { onSelectApp(app.id) }
                                     .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)
@@ -259,7 +292,7 @@ fun SidebarDrawer(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .clip(RoundedCornerShape(8.dp))
+                                        .clip(DeleteBtnShape)
                                         .clickable { onDeleteApp(app.id) }
                                         .testTag("delete_app_${app.id}"),
                                     contentAlignment = Alignment.Center
@@ -281,7 +314,7 @@ fun SidebarDrawer(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(ActionCardShape)
                         .background(itemSurface)
                         .clickable(onClick = onToggleTheme)
                         .padding(horizontal = 14.dp, vertical = 12.dp)
@@ -289,12 +322,38 @@ fun SidebarDrawer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(
-                        imageVector = if (isDarkTheme) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
-                        contentDescription = null,
-                        tint = textMain,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Canvas(modifier = Modifier.size(18.dp)) {
+                        val strokePx = 1.8.dp.toPx()
+                        val center = Offset(size.width / 2f, size.height / 2f)
+                        if (isDarkTheme) {
+                            drawCircle(
+                                color = textMain,
+                                radius = size.minDimension * 0.22f,
+                                center = center,
+                                style = Stroke(width = strokePx)
+                            )
+                            val r1 = size.minDimension * 0.34f
+                            val r2 = size.minDimension * 0.46f
+                            for (i in 0 until 8) {
+                                val cos = SunRayCos[i]
+                                val sin = SunRaySin[i]
+                                drawLine(
+                                    color = textMain,
+                                    start = Offset(center.x + cos * r1, center.y + sin * r1),
+                                    end = Offset(center.x + cos * r2, center.y + sin * r2),
+                                    strokeWidth = strokePx,
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        } else {
+                            drawCircle(
+                                color = textMain,
+                                radius = size.minDimension * 0.34f,
+                                center = center,
+                                style = Stroke(width = strokePx)
+                            )
+                        }
+                    }
                     Text(
                         text = if (isDarkTheme) {
                             stringResource(R.string.theme_light_mode)

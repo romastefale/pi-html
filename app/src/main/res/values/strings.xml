@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">pi.html</string>
+    <string name="app_name">pi-html</string>
     <string name="brand_short">Pi</string>
-    <string name="brand_name">pi.html</string>
+    <string name="brand_name">pi-html</string>
     <string name="new_app_button">Nova aplicação</string>
     <string name="saved_apps_header">Aplicações</string>
     <string name="empty_history_message">Suas aplicações aparecerão aqui.</string>

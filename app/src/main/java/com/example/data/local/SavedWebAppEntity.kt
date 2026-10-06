@@ -1,9 +1,20 @@
 package com.example.data.local
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "saved_web_apps")
+@Immutable
+@Entity(
+    tableName = "saved_web_apps",
+    indices = [
+        Index(
+            value = ["createdAt", "id"],
+            name = "index_saved_web_apps_created_at_id"
+        )
+    ]
+)
 data class SavedWebAppEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,

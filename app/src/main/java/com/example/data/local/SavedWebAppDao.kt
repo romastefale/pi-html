@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SavedWebAppDao {
-    @Query("SELECT * FROM saved_web_apps ORDER BY lastOpenedAt DESC")
+    @Query("SELECT * FROM saved_web_apps ORDER BY createdAt DESC, id DESC")
     fun getAllApps(): Flow<List<SavedWebAppEntity>>
+
+    @Query("SELECT * FROM saved_web_apps ORDER BY createdAt DESC, id DESC")
+    suspend fun getAllAppsSnapshot(): List<SavedWebAppEntity>
 
     @Query("SELECT * FROM saved_web_apps WHERE id = :id LIMIT 1")
     suspend fun getAppById(id: Long): SavedWebAppEntity?
@@ -27,8 +30,7 @@ interface SavedWebAppDao {
         SET lastVisitedUrl = :lastVisitedUrl,
             scrollX = :scrollX,
             scrollY = :scrollY,
-            webViewStateBase64 = :webViewStateBase64,
-            lastOpenedAt = :lastOpenedAt
+            webViewStateBase64 = :webViewStateBase64
         WHERE id = :id
         """
     )
@@ -37,8 +39,7 @@ interface SavedWebAppDao {
         lastVisitedUrl: String?,
         scrollX: Int,
         scrollY: Int,
-        webViewStateBase64: String?,
-        lastOpenedAt: Long
+        webViewStateBase64: String?
     )
 
     @Query("UPDATE saved_web_apps SET lastOpenedAt = :timestamp WHERE id = :id")

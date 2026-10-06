@@ -1,0 +1,105 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "ced1424de26fb2b4feea8be654fc4202",
+    "entities": [
+      {
+        "tableName": "saved_web_apps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `sourceType` TEXT NOT NULL, `targetUrl` TEXT NOT NULL, `localFilePath` TEXT, `htmlContent` TEXT, `lastVisitedUrl` TEXT, `scrollX` INTEGER NOT NULL, `scrollY` INTEGER NOT NULL, `webViewStateBase64` TEXT, `createdAt` INTEGER NOT NULL, `lastOpenedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceType",
+            "columnName": "sourceType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetUrl",
+            "columnName": "targetUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localFilePath",
+            "columnName": "localFilePath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "htmlContent",
+            "columnName": "htmlContent",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastVisitedUrl",
+            "columnName": "lastVisitedUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "scrollX",
+            "columnName": "scrollX",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scrollY",
+            "columnName": "scrollY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "webViewStateBase64",
+            "columnName": "webViewStateBase64",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastOpenedAt",
+            "columnName": "lastOpenedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_saved_web_apps_created_at_id",
+            "unique": false,
+            "columnNames": [
+              "createdAt",
+              "id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_saved_web_apps_created_at_id` ON `${TABLE_NAME}` (`createdAt`, `id`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ced1424de26fb2b4feea8be654fc4202')"
+    ]
+  }
+}
